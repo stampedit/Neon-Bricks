@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>STACKS - The Viral Stacking Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen active">
+            <div class="logo">
+                <h1>STACKS</h1>
+                <p>Stack perfectly. Win big.</p>
+            </div>
+            <button id="playBtn" class="btn-primary">PLAY</button>
+            <div class="menu-buttons">
+                <button id="leaderboardBtn" class="btn-secondary">🏆 Leaderboard</button>
+                <button id="skinsBtn" class="btn-secondary">🎨 Skins</button>
+            </div>
+            <div class="high-score">Best: <span id="bestScore">0</span></div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="game-header">
+                <div class="score">Score: <span id="currentScore">0</span></div>
+                <div class="combo">Combo: <span id="comboCount">0</span>x</div>
+            </div>
+            <canvas id="gameCanvas" width="400" height="600"></canvas>
+            <div class="game-controls">
+                <button id="pauseBtn" class="btn-small">⏸️</button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="screen">
+            <div class="game-over-content">
+                <h2>GAME OVER</h2>
+                <div class="final-score">Score: <span id="finalScore">0</span></div>
+                <div class="best-score">Best: <span id="finalBest">0</span></div>
+                <div id="newRecord" class="new-record" style="display: none;">🎉 NEW RECORD!</div>
+            </div>
+            <div class="game-over-buttons">
+                <button id="restartBtn" class="btn-primary">PLAY AGAIN</button>
+                <button id="shareBtn" class="btn-secondary">📤 SHARE SCORE</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboardScreen" class="screen">
+            <div class="screen-header">
+                <button id="backFromLeaderboard" class="btn-back">← Back</button>
+                <h2>🏆 Leaderboard</h2>
+            </div>
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" data-tab="daily">Daily</button>
+                <button class="tab-btn" data-tab="friends">Friends</button>
+                <button class="tab-btn" data-tab="global">Global</button>
+            </div>
+            <div id="leaderboardList" class="leaderboard-list"></div>
+        </div>
+
+        <!-- Skins Screen -->
+        <div id="skinsScreen" class="screen">
+            <div class="screen-header">
+                <button id="backFromSkins" class="btn-back">← Back</button>
+                <h2>🎨 Skins</h2>
+            </div>
+            <div class="coins">🪙 <span id="coinCount">0</span></div>
+            <div id="skinsList" class="skins-list"></div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <h3>Share Your Score!</h3>
+            <p>Can you beat my score of <span id="shareScore">0</span> in STACKS?</p>
+            <div class="share-buttons">
+                <button class="share-btn" data-platform="tiktok">🎵 TikTok</button>
+                <button class="share-btn" data-platform="twitter">🐦 Twitter</button>
+                <button class="share-btn" data-platform="copy">📋 Copy Link</button>
+            </div>
+            <button id="closeShare" class="btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
