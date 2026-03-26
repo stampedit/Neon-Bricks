@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>STACKS - Enhanced Edition V2</title>
+    
+    <!-- SEO and Social Media Meta Tags -->
+    <meta name="description" content="Enhanced stacking game with improved power-ups and inventory system!">
+    <meta name="keywords" content="stacks game, html5 game, arcade, power-ups, inventory">
+    <meta name="author" content="Enhanced Game Developer V2">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="STACKS - Enhanced V2">
+    <meta property="og:description" content="Enhanced stacking game with improved power-ups!">
+    <meta property="og:image" content="./stacks-preview.jpg">
+    <meta property="og:url" content="">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-canvas {
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.2);
+            background: #1a1a2e;
+            max-width: 100%;
+            max-height: 100vh;
+            image-rendering: pixelated;
+            cursor: pointer;
+        }
+
+        .game-canvas:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .mobile-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            z-index: 1000;
+        }
+
+        .drop-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drop-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .drop-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .drop-icon {
+            font-size: 20px;
+        }
+
+        .powerup-controls {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .powerup-button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .powerup-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+        }
+
+        .powerup-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .powerup-icon {
+            font-size: 16px;
+        }
+
+        .powerup-inventory {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 300px;
+        }
+
+        .powerup-slot {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: white;
+            text-align: center;
+            min-width: 40px;
+            position: relative;
+        }
+
+        .powerup-slot.filled {
+            background: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+        }
+
+        .powerup-slot-number {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-nav-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-icon {
+            font-size: 14px;
+        }
+
+        .nav-text {
+            font-size: 11px;
+        }
+
+        .restart-button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .restart-button:hover {
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .home-button {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .home-button:hover {
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #ccc;
+            text-align: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .power-up-hint {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(102, 126, 234, 0.2);
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #667eea;
+            text-align: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: block;
+            }
+            
+            .mobile-nav-controls {
+                display: flex;
+            }
+            
+            .instructions {
+                font-size: 12px;
+                padding: 8px 16px;
+                top: 10px;
+            }
+            
+            .power-up-hint {
+                font-size: 11px;
+                bottom: 70px;
+                padding: 6px 12px;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Power-up notification */
+        @keyframes slideIn {
+            from {
+                transform: translateX(-50%) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .power-up-notification {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" class="game-canvas" width="400" height="600"></canvas>
+        
+        <div class="instructions">
+            SPACE: Drop | P: Use Power-up | 1-7: Select | ESC: Pause
+        </div>
+        
+        <div class="power-up-hint">
+            💡 Stack colorful blocks with icons to collect power-ups!
+        </div>
+        
+        <div class="mobile-controls">
+            <button id="dropButton" class="drop-button">
+                <span class="drop-icon">▼</span>
+                <span class="drop-text">DROP</span>
+            </button>
+            
+            <!-- Power-up controls for mobile -->
+            <div id="powerUpControls" class="powerup-controls" style="display: none;">
+                <button id="powerUpButton" class="powerup-button">
+                    <span class="powerup-icon">⚡</span>
+                    <span class="powerup-text">USE POWER-UP</span>
+                </button>
+                
+                <div id="powerUpInventory" class="powerup-inventory">
+                    <!-- Power-ups will be shown here -->
+                </div>
+            </div>
+            
+            <!-- Mobile navigation controls -->
+            <div id="mobileNavControls" class="mobile-nav-controls">
+                <button id="restartButton" class="nav-button restart-button">
+                    <span class="nav-icon">🔄</span>
+                    <span class="nav-text">RESTART</span>
+                </button>
+                
+                <button id="homeButton" class="nav-button home-button">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">HOME</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include modular JavaScript files -->
+    <script src="stateManager.js"></script>
+    <script src="particleSystem.js"></script>
+    <script src="soundSystem.js"></script>
+    <script src="old-stacks.js"></script>
+    
+    <script>
+        // Mobile drop button
+        document.getElementById('dropButton')?.addEventListener('click', () => {
+            const event = new CustomEvent('dropBlock');
+            document.dispatchEvent(event);
+        });
+        
+        // Mobile power-up button
+        document.getElementById('powerUpButton')?.addEventListener('click', () => {
+            // Trigger power-up activation
+            if (window.game && window.game.activateNextPowerUp) {
+                window.game.activateNextPowerUp();
+            }
+        });
+        
+        // Mobile restart button
+        document.getElementById('restartButton')?.addEventListener('click', () => {
+            if (window.game && window.game.stateManager) {
+                // Restart the game
+                window.game.stateManager.setState('playing');
+                console.log('🔄 Game restarted (mobile button)');
+            }
+        });
+        
+        // Mobile home button
+        document.getElementById('homeButton')?.addEventListener('click', () => {
+            if (window.game && window.game.stateManager) {
+                // Go back to main menu
+                window.game.stateManager.setState('menu');
+                console.log('🏠 Returned to main menu (mobile button)');
+            }
+        });
+        
+        // Update mobile power-up display
+        function updateMobilePowerUpDisplay() {
+            const powerUpControls = document.getElementById('powerUpControls');
+            const powerUpInventory = document.getElementById('powerUpInventory');
+            
+            if (window.game && window.game.collectedPowerUps) {
+                const powerUps = window.game.collectedPowerUps;
+                
+                // Show/hide power-up controls based on inventory
+                if (powerUps.length > 0) {
+                    powerUpControls.style.display = 'flex';
+                    
+                    // Clear and rebuild inventory display
+                    powerUpInventory.innerHTML = '';
+                    
+                    powerUps.forEach((powerUp, index) => {
+                        const slot = document.createElement('div');
+                        slot.className = 'powerup-slot filled';
+                        slot.innerHTML = `
+                            <div class="powerup-slot-number">${index + 1}</div>
+                            ${powerUp.icon}
+                        `;
+                        
+                        // Make slots clickable to use specific power-ups
+                        slot.addEventListener('click', () => {
+                            if (window.game && window.game.activatePowerUpByIndex) {
+                                window.game.activatePowerUpByIndex(index);
+                            }
+                        });
+                        
+                        powerUpInventory.appendChild(slot);
+                    });
+                } else {
+                    powerUpControls.style.display = 'none';
+                }
+            }
+        }
+        
+        // Update power-up display every second
+        setInterval(updateMobilePowerUpDisplay, 1000);
+        
+        // Make game globally accessible for mobile controls
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (typeof StacksGameEnhancedV2 !== 'undefined') {
+                    // Store game instance globally
+                    const originalGameLoop = StacksGameEnhancedV2.prototype.gameLoop;
+                    StacksGameEnhancedV2.prototype.gameLoop = function(currentTime = 0) {
+                        // Store game instance globally
+                        window.game = this;
+                        return originalGameLoop.call(this, currentTime);
+                    };
+                }
+            }, 1000);
+        });
+        
+        // Prevent zoom on double tap for mobile
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Hide instructions after 8 seconds
+        setTimeout(() => {
+            const instructions = document.querySelector('.instructions');
+            const hint = document.querySelector('.power-up-hint');
+            
+            if (instructions) {
+                instructions.style.transition = 'opacity 1s ease-out';
+                instructions.style.opacity = '0';
+                setTimeout(() => {
+                    instructions.style.display = 'none';
+                }, 1000);
+            }
+            
+            if (hint) {
+                setTimeout(() => {
+                    hint.style.transition = 'opacity 1s ease-out';
+                    hint.style.opacity = '0';
+                    setTimeout(() => {
+                        hint.style.display = 'none';
+                    }, 1000);
+                }, 2000);
+            }
+        }, 8000);
+        
+        // Error handling
+        window.addEventListener('error', (event) => {
+            console.error('Game error:', event.error);
+        });
+        
+        // Console enhancements for power-up feedback
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            // Show power-up collection notifications
+            const message = args.join(' ');
+            if (message.includes('🎁 Collected')) {
+                updateMobilePowerUpDisplay();
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>STACKS - Debug Version</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            border: 2px solid #667eea;
+            background: #0a0a0a;
+            display: block;
+            margin: 20px auto;
+        }
+        #debug {
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 800px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .error {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ffff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>STACKS - Debug Version</h1>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    
+    <div id="debug">
+        <div class="status">Initializing debug system...</div>
+    </div>
+
+    <script>
+        const debugDiv = document.getElementById('debug');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'status';
+            debugDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            console.log(`[${timestamp}] ${message}`);
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+        
+        function testCanvas() {
+            log('Testing canvas...');
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas) {
+                log('❌ Canvas not found!', 'error');
+                return false;
+            }
+            log(`✅ Canvas found: ${canvas.width}x${canvas.height}`);
+            
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                log('❌ Canvas context not available!', 'error');
+                return false;
+            }
+            log('✅ Canvas context available');
+            
+            // Test drawing
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(10, 10, 50, 50);
+            log('✅ Canvas drawing test successful');
+            return true;
+        }
+        
+        function testAudio() {
+            log('Testing audio system...');
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) {
+                    log('⚠️ Web Audio API not supported', 'warning');
+                    return false;
+                }
+                
+                const audioContext = new AudioContext();
+                log('✅ AudioContext created');
+                
+                // Test oscillator
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                gainNode.gain.value = 0.01; // Very quiet
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+                log('✅ Audio test successful');
+                return true;
+            } catch (error) {
+                log(`❌ Audio test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        function testEvents() {
+            log('Testing event system...');
+            let spacePressed = false;
+            let canvasClicked = false;
+            
+            const spaceHandler = (e) => {
+                if (e.code === 'Space') {
+                    spacePressed = true;
+                    log('✅ Space bar event detected');
+                    document.removeEventListener('keydown', spaceHandler);
+                }
+            };
+            
+            document.addEventListener('keydown', spaceHandler);
+            
+            const clickHandler = () => {
+                canvasClicked = true;
+                log('✅ Canvas click event detected');
+                document.removeEventListener('click', clickHandler);
+            };
+            
+            document.getElementById('gameCanvas').addEventListener('click', clickHandler);
+            
+            setTimeout(() => {
+                if (!spacePressed) log('⚠️ Space bar not pressed yet (try pressing it)', 'warning');
+                if (!canvasClicked) log('⚠️ Canvas not clicked yet (try clicking it)', 'warning');
+            }, 2000);
+        }
+        
+        // Simple State Manager
+        class StateManager {
+            constructor() {
+                this.states = {
+                    MENU: 'menu',
+                    PLAYING: 'playing',
+                    PAUSED: 'paused',
+                    GAME_OVER: 'game_over'
+                };
+                this.currentState = this.states.MENU;
+                this.listeners = new Map();
+                log('✅ StateManager initialized');
+            }
+            
+            setState(newState, data = {}) {
+                const oldState = this.currentState;
+                this.currentState = newState;
+                log(`🔄 State changed: ${oldState} → ${newState}`);
+                this.notifyListeners({ state: newState, data, from: oldState });
+            }
+            
+            getCurrentState() {
+                return this.currentState;
+            }
+            
+            isState(state) {
+                return this.currentState === state;
+            }
+            
+            addListener(event, callback) {
+                if (!this.listeners.has(event)) {
+                    this.listeners.set(event, []);
+                }
+                this.listeners.get(event).push(callback);
+            }
+            
+            notifyListeners(event) {
+                if (this.listeners.has('stateChanged')) {
+                    this.listeners.get('stateChanged').forEach(callback => callback(event));
+                }
+            }
+        }
+
+        // Simple Particle System
+        class ParticleSystem {
+            constructor(canvas, ctx) {
+                this.canvas = canvas;
+                this.ctx = ctx;
+                this.particles = [];
+                log('✅ ParticleSystem initialized');
+            }
+            
+            clear() {
+                this.particles = [];
+            }
+            
+            createExplosion(x, y, color, count = 30) {
+                log(`💥 Creating explosion at (${x}, ${y}) with ${count} particles`);
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 8,
+                        vy: (Math.random() - 0.5) * 8,
+                        color: color || '#ffffff',
+                        life: 1.0,
+                        size: Math.random() * 4 + 2
+                    });
+                }
+            }
+            
+            createPerfectEffect(x, y) {
+                log('⭐ Creating perfect placement effect');
+                for (let i = 0; i < 20; i++) {
+                    const angle = (Math.PI * 2 * i) / 20;
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * 5,
+                        vy: Math.sin(angle) * 5,
+                        color: '#00ff00',
+                        life: 1.0,
+                        size: 3
+                    });
+                }
+            }
+            
+            update() {
+                this.particles = this.particles.filter(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.2;
+                    p.life -= 0.02;
+                    return p.life > 0;
+                });
+            }
+            
+            render() {
+                this.particles.forEach(p => {
+                    this.ctx.globalAlpha = p.life;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+                });
+                this.ctx.globalAlpha = 1;
+            }
+        }
+
+        // Simple Sound System
+        class SoundSystem {
+            constructor() {
+                this.initialized = false;
+                log('✅ SoundSystem initialized');
+            }
+            
+            initialize() {
+                this.initialized = true;
+                log('🔊 SoundSystem initialized (audio ready)');
+            }
+            
+            playSound(type) {
+                if (!this.initialized) {
+                    log('⚠️ Sound not initialized', 'warning');
+                    return;
+                }
+                
+                log(`🔊 Playing sound: ${type}`);
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    switch(type) {
+                        case 'blockLand':
+                            oscillator.frequency.value = 440;
+                            gainNode.gain.value = 0.1;
+                            break;
+                        case 'perfectPlacement':
+                            oscillator.frequency.value = 880;
+                            gainNode.gain.value = 0.1;
+                            break;
+                        case 'gameOver':
+                            oscillator.frequency.value = 220;
+                            gainNode.gain.value = 0.1;
+                            break;
+                        default:
+                            oscillator.frequency.value = 440;
+                            gainNode.gain.value = 0.05;
+                    }
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                } catch (error) {
+                    log(`❌ Sound play failed: ${error.message}`, 'error');
+                }
+            }
+            
+            playComboSound(combo) {
+                log(`🎵 Playing combo sound for combo x${combo}`);
+                this.playSound('blockLand');
+            }
+        }
+
+        // Debug StacksGame Class
+        class StacksGame {
+            constructor() {
+                log('🎮 Creating StacksGame instance...');
+                
+                try {
+                    // Canvas setup
+                    this.canvas = document.getElementById('gameCanvas');
+                    this.ctx = this.canvas.getContext('2d');
+                    if (!this.ctx) {
+                        throw new Error('Canvas context not available');
+                    }
+                    log('✅ Canvas setup successful');
+                    
+                    // Game systems
+                    this.stateManager = new StateManager();
+                    this.particleSystem = new ParticleSystem(this.canvas, this.ctx);
+                    this.soundSystem = new SoundSystem();
+                    
+                    // Game state
+                    this.score = 0;
+                    this.combo = 0;
+                    this.maxCombo = 0;
+                    this.level = 1;
+                    this.blocks = [];
+                    this.currentBlock = null;
+                    this.lastBlock = null;
+                    this.gameHeight = 0;
+                    this.maxHeight = this.canvas.height - 100;
+                    
+                    // Block physics
+                    this.blockSpeed = 3;
+                    this.blockDirection = 1;
+                    this.lastBlockWidth = 100;
+                    this.perfectStacks = 0;
+                    this.totalStacks = 0;
+                    
+                    // Visual effects
+                    this.screenShake = 0;
+                    this.screenShakeDecay = 0.9;
+                    this.backgroundOffset = 0;
+                    this.particlesEnabled = true;
+                    
+                    // Controls
+                    this.controls = {
+                        space: false,
+                        mouse: false,
+                        touch: false,
+                        touchStartX: 0,
+                        touchStartY: 0
+                    };
+                    
+                    // Colors
+                    this.themes = {
+                        marvel: ['#FF0000', '#FFD700', '#0000FF', '#FFFFFF', '#FF0000', '#8B0000', '#9B59B6', '#FF6B35', '#3498DB', '#2ECC71'],
+                        sonic: ['#0066CC', '#FF0000', '#FFFFFF', '#FFD700', '#FF6B6B', '#000000', '#FFA500', '#800080', '#00CED1', '#FF1493']
+                    };
+                    
+                    this.currentTheme = 'marvel';
+                    this.blockColors = this.themes.marvel;
+                    
+                    // Performance
+                    this.lastTime = 0;
+                    this.fps = 60;
+                    this.targetFPS = 60;
+                    this.frameSkip = 0;
+                    
+                    this.init();
+                    log('✅ StacksGame created successfully');
+                    
+                } catch (error) {
+                    log(`❌ StacksGame creation failed: ${error.message}`, 'error');
+                    throw error;
+                }
+            }
+            
+            init() {
+                log('🚀 Initializing game...');
+                this.setupEventListeners();
+                this.setupStateManager();
+                this.stateManager.setState('menu');
+                
+                // Start game loop
+                this.gameLoop();
+                log('✅ Game initialization complete');
+            }
+            
+            setupEventListeners() {
+                log('🎮 Setting up event listeners...');
+                
+                // Keyboard controls
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.controls.space = true;
+                        log('🎯 Space bar pressed');
+                        this.handleSpacePress();
+                    }
+                    if (e.code === 'Escape') {
+                        this.handleEscapePress();
+                    }
+                    if (e.code === 'Enter') {
+                        this.handleEnterPress();
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    if (e.code === 'Space') {
+                        this.controls.space = false;
+                    }
+                });
+                
+                // Mouse controls
+                this.canvas.addEventListener('click', () => {
+                    this.controls.mouse = true;
+                    log('🖱️ Canvas clicked');
+                    this.handleClick();
+                });
+                
+                // Touch controls
+                this.canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.controls.touch = true;
+                    const touch = e.touches[0];
+                    this.controls.touchStartX = touch.clientX;
+                    this.controls.touchStartY = touch.clientY;
+                    log('📱 Touch started');
+                    this.handleTouch();
+                });
+                
+                this.canvas.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.controls.touch = false;
+                });
+                
+                log('✅ Event listeners setup complete');
+            }
+            
+            setupStateManager() {
+                log('📊 Setting up state manager...');
+                this.stateManager.addListener('stateChanged', (data) => {
+                    this.handleStateChange(data);
+                });
+                log('✅ State manager setup complete');
+            }
+            
+            handleStateChange(data) {
+                const { from, to } = data;
+                log(`🔄 State change handler: ${from} → ${to}`);
+                
+                // Initialize audio on first interaction
+                if (!this.soundSystem.initialized) {
+                    this.soundSystem.initialize();
+                }
+                
+                switch (to) {
+                    case 'menu':
+                        this.resetGame();
+                        break;
+                    case 'playing':
+                        this.startGame();
+                        break;
+                    case 'paused':
+                        this.pauseGame();
+                        break;
+                    case 'game_over':
+                        this.endGame();
+                        break;
+                }
+            }
+            
+            handleSpacePress() {
+                log('🎮 Space bar handler called');
+                if (this.stateManager.isState('playing')) {
+                    this.dropBlock();
+                } else if (this.stateManager.isState('menu')) {
+                    log('🎮 Starting game from menu');
+                    this.stateManager.setState('playing');
+                } else if (this.stateManager.isState('game_over')) {
+                    log('🎮 Restarting game from game over');
+                    this.stateManager.setState('playing');
+                }
+            }
+            
+            handleEscapePress() {
+                if (this.stateManager.isState('playing')) {
+                    this.stateManager.setState('paused');
+                } else if (this.stateManager.isState('paused')) {
+                    this.stateManager.setState('playing');
+                }
+            }
+            
+            handleEnterPress() {
+                if (this.stateManager.isState('menu')) {
+                    this.stateManager.setState('playing');
+                }
+            }
+            
+            handleClick() {
+                if (this.stateManager.isState('playing')) {
+                    this.dropBlock();
+                }
+            }
+            
+            handleTouch() {
+                if (this.stateManager.isState('playing')) {
+                    this.dropBlock();
+                }
+            }
+            
+            startGame() {
+                log('🎮 Starting game...');
+                this.resetGame();
+                this.createInitialBlock();
+                log('✅ Game started');
+            }
+            
+            resetGame() {
+                log('🔄 Resetting game state...');
+                this.score = 0;
+                this.combo = 0;
+                this.level = 1;
+                this.blocks = [];
+                this.currentBlock = null;
+                this.lastBlock = null;
+                this.gameHeight = 0;
+                this.blockSpeed = 3;
+                this.perfectStacks = 0;
+                this.totalStacks = 0;
+                this.screenShake = 0;
+                this.isNewHighScore = false;
+                this.particleSystem.clear();
+                log('✅ Game reset complete');
+            }
+            
+            createInitialBlock() {
+                log('🎯 Creating initial block...');
+                this.currentBlock = {
+                    x: this.canvas.width / 2 - 50,
+                    y: 50,
+                    width: 100,
+                    height: 20,
+                    color: this.getRandomColor(),
+                    direction: 1,
+                    speed: this.blockSpeed
+                };
+                log(`✅ Initial block created: ${JSON.stringify({
+                    x: this.currentBlock.x,
+                    y: this.currentBlock.y,
+                    width: this.currentBlock.width,
+                    color: this.currentBlock.color
+                })}`);
+            }
+            
+            getRandomColor() {
+                const color = this.blockColors[Math.floor(Math.random() * this.blockColors.length)];
+                log(`🎨 Random color selected: ${color}`);
+                return color;
+            }
+            
+            dropBlock() {
+                log('🎯 Drop block called');
+                if (!this.currentBlock) {
+                    log('❌ No current block to drop!', 'error');
+                    return;
+                }
+                if (!this.stateManager.isState('playing')) {
+                    log('❌ Game not in playing state!', 'error');
+                    return;
+                }
+                
+                log(`🎯 Dropping block at (${this.currentBlock.x}, ${this.currentBlock.y})`);
+                this.soundSystem.playSound('blockLand');
+                
+                // Create particle effect
+                this.particleSystem.createExplosion(
+                    this.currentBlock.x + this.currentBlock.width / 2,
+                    this.currentBlock.y + this.currentBlock.height / 2,
+                    this.currentBlock.color
+                );
+                
+                // Check if block is placed correctly
+                if (this.checkBlockPlacement()) {
+                    this.placeBlock();
+                } else {
+                    this.gameOver();
+                }
+            }
+            
+            checkBlockPlacement() {
+                if (!this.lastBlock) {
+                    log('✅ First block - always succeeds');
+                    return true;
+                }
+                
+                const blockLeft = this.currentBlock.x;
+                const blockRight = this.currentBlock.x + this.currentBlock.width;
+                const lastBlockLeft = this.lastBlock.x;
+                const lastBlockRight = this.lastBlock.x + this.lastBlock.width;
+                
+                // Check if blocks overlap
+                const overlap = blockRight > lastBlockLeft && blockLeft < lastBlockRight;
+                log(`🔍 Block placement check: overlap=${overlap}, block=[${blockLeft}, ${blockRight}], last=[${lastBlockLeft}, ${lastBlockRight}]`);
+                return overlap;
+            }
+            
+            placeBlock() {
+                log('✅ Placing block successfully');
+                this.totalStacks++;
+                
+                // Calculate perfect placement bonus
+                let isPerfect = false;
+                if (this.lastBlock) {
+                    const centerDiff = Math.abs(
+                        (this.currentBlock.x + this.currentBlock.width / 2) -
+                        (this.lastBlock.x + this.lastBlock.width / 2)
+                    );
+                    
+                    isPerfect = centerDiff < 5;
+                    log(`🎯 Perfect placement check: centerDiff=${centerDiff}, isPerfect=${isPerfect}`);
+                    
+                    if (isPerfect) {
+                        this.perfectStacks++;
+                        this.combo++;
+                        this.score += 100 * this.level * (1 + this.combo * 0.5);
+                        this.soundSystem.playSound('perfectPlacement');
+                        this.particleSystem.createPerfectEffect(
+                            this.currentBlock.x + this.currentBlock.width / 2,
+                            this.currentBlock.y + this.currentBlock.height / 2
+                        );
+                        this.triggerScreenShake(5);
+                        log(`🌟 Perfect placement! Combo: x${this.combo}, Score: ${this.score}`);
+                    } else {
+                        this.combo = 0;
+                        this.score += 50 * this.level;
+                        log(`✅ Good placement! Score: ${this.score}`);
+                    }
+                } else {
+                    this.score += 50 * this.level;
+                    log(`✅ First block! Score: ${this.score}`);
+                }
+                
+                // Create combo effect
+                if (this.combo > 0) {
+                    this.soundSystem.playComboSound(this.combo);
+                }
+                
+                // Calculate new block width based on placement
+                if (this.lastBlock) {
+                    const blockLeft = this.currentBlock.x;
+                    const blockRight = this.currentBlock.x + this.currentBlock.width;
+                    const lastBlockLeft = this.lastBlock.x;
+                    const lastBlockRight = this.lastBlock.x + this.lastBlock.width;
+                    
+                    const overlapLeft = Math.max(blockLeft, lastBlockLeft);
+                    const overlapRight = Math.min(blockRight, lastBlockRight);
+                    const overlapWidth = overlapRight - overlapLeft;
+                    
+                    // Cut the block to the overlap
+                    if (overlapWidth > 0) {
+                        this.currentBlock.x = overlapLeft;
+                        this.currentBlock.width = overlapWidth;
+                        log(`✂️ Block cut to overlap: new width=${overlapWidth}`);
+                    }
+                }
+                
+                // Add block to stack
+                this.blocks.push(this.currentBlock);
+                this.lastBlock = this.currentBlock;
+                this.lastBlockWidth = this.currentBlock.width;
+                
+                // Update game height
+                this.gameHeight += this.currentBlock.height;
+                
+                // Check level progression
+                if (this.totalStacks % 10 === 0) {
+                    this.levelUp();
+                }
+                
+                // Create new block
+                this.createNewBlock();
+                
+                // Check for high score
+                this.checkHighScore();
+            }
+            
+            createNewBlock() {
+                log('🎯 Creating new block...');
+                this.currentBlock = {
+                    x: 0,
+                    y: this.gameHeight + 50,
+                    width: this.lastBlockWidth,
+                    height: 20,
+                    color: this.getRandomColor(),
+                    direction: 1,
+                    speed: this.blockSpeed + (this.level - 1) * 0.5
+                };
+                log(`✅ New block created: width=${this.currentBlock.width}, speed=${this.currentBlock.speed}`);
+            }
+            
+            levelUp() {
+                log(`🎉 Level up! Now level ${this.level}`);
+                this.level++;
+                this.triggerScreenShake(10);
+                
+                // Increase difficulty
+                this.blockSpeed = Math.min(this.blockSpeed + 0.3, 8);
+                log(`⚡ Speed increased to ${this.blockSpeed}`);
+            }
+            
+            triggerScreenShake(intensity) {
+                log(`📳 Screen shake: intensity=${intensity}`);
+                this.screenShake = intensity;
+            }
+            
+            updateScreenShake() {
+                if (this.screenShake > 0) {
+                    this.screenShake *= this.screenShakeDecay;
+                    if (this.screenShake < 0.1) {
+                        this.screenShake = 0;
+                    }
+                }
+            }
+            
+            updateCurrentBlock() {
+                if (!this.currentBlock || !this.stateManager.isState('playing')) return;
+                
+                // Move block horizontally
+                this.currentBlock.x += this.currentBlock.speed * this.currentBlock.direction;
+                
+                // Bounce off walls
+                if (this.currentBlock.x <= 0 || 
+                    this.currentBlock.x + this.currentBlock.width >= this.canvas.width) {
+                    this.currentBlock.direction *= -1;
+                    this.currentBlock.x = Math.max(0, 
+                        Math.min(this.currentBlock.x, this.canvas.width - this.currentBlock.width));
+                    log(`🏀 Block bounced off wall, direction=${this.currentBlock.direction}`);
+                }
+            }
+            
+            gameOver() {
+                log(`💀 Game over! Final score: ${this.score}`);
+                this.stateManager.setState('game_over', {
+                    finalScore: this.score,
+                    isNewRecord: this.isNewHighScore
+                });
+                
+                this.soundSystem.playSound('gameOver');
+                this.particleSystem.createExplosion(
+                    this.currentBlock.x + this.currentBlock.width / 2,
+                    this.currentBlock.y + this.currentBlock.height / 2,
+                    '#ff0000',
+                    50
+                );
+                this.triggerScreenShake(20);
+            }
+            
+            endGame() {
+                log('🏁 Game ended');
+                this.saveHighScore();
+            }
+            
+            checkHighScore() {
+                // Simplified for debug
+                if (this.score > 100) {
+                    this.isNewHighScore = true;
+                    log(`🏆 New high score: ${this.score}`);
+                }
+            }
+            
+            saveHighScore() {
+                if (this.isNewHighScore) {
+                    log('💾 High score saved');
+                }
+            }
+            
+            update(deltaTime) {
+                if (!this.stateManager.isState('playing')) return;
+                
+                // Update current block
+                this.updateCurrentBlock();
+                
+                // Update particles
+                if (this.particlesEnabled) {
+                    this.particleSystem.update();
+                }
+                
+                // Update screen shake
+                this.updateScreenShake();
+                
+                // Update background
+                this.backgroundOffset += deltaTime * 10;
+                
+                // Check if block is too high
+                if (this.currentBlock && this.currentBlock.y > this.maxHeight) {
+                    log(`⚠️ Block too high: ${this.currentBlock.y} > ${this.maxHeight}`);
+                    this.gameOver();
+                }
+            }
+            
+            render() {
+                // Clear canvas
+                this.ctx.fillStyle = '#0a0a0a';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Apply screen shake
+                if (this.screenShake > 0) {
+                    const shakeX = (Math.random() - 0.5) * this.screenShake;
+                    const shakeY = (Math.random() - 0.5) * this.screenShake;
+                    this.ctx.save();
+                    this.ctx.translate(shakeX, shakeY);
+                }
+                
+                // Draw background
+                this.drawBackground();
+                
+                // Draw blocks
+                this.drawBlocks();
+                
+                // Draw current block
+                if (this.currentBlock) {
+                    this.drawBlock(this.currentBlock);
+                }
+                
+                // Draw particles
+                if (this.particlesEnabled) {
+                    this.particleSystem.render();
+                }
+                
+                // Restore transform if screen shake was applied
+                if (this.screenShake > 0) {
+                    this.ctx.restore();
+                }
+                
+                // Draw UI
+                this.drawUI();
+                
+                // Draw menus
+                this.drawMenus();
+            }
+            
+            drawBackground() {
+                // Create gradient background
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                gradient.addColorStop(0, '#1a1a2e');
+                gradient.addColorStop(1, '#0a0a0a');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+            
+            drawBlocks() {
+                for (const block of this.blocks) {
+                    this.drawBlock(block);
+                }
+            }
+            
+            drawBlock(block) {
+                // Main block
+                this.ctx.fillStyle = block.color;
+                this.ctx.fillRect(block.x, block.y, block.width, block.height);
+                
+                // Highlight
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.fillRect(block.x, block.y, block.width, 4);
+                
+                // Shadow
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                this.ctx.fillRect(block.x, block.y + block.height - 4, block.width, 4);
+                
+                // Border
+                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(block.x, block.y, block.width, block.height);
+            }
+            
+            drawUI() {
+                if (!this.stateManager.isState('playing')) return;
+                
+                // Score
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = 'bold 24px Arial';
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(`Score: ${this.score}`, 20, 40);
+                
+                // Combo
+                if (this.combo > 0) {
+                    this.ctx.fillStyle = '#ffd700';
+                    this.ctx.font = 'bold 20px Arial';
+                    this.ctx.fillText(`Combo x${this.combo}`, 20, 70);
+                }
+                
+                // Level
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = 'bold 18px Arial';
+                this.ctx.textAlign = 'right';
+                this.ctx.fillText(`Level ${this.level}`, this.canvas.width - 20, 40);
+            }
+            
+            drawMenus() {
+                switch (this.stateManager.getCurrentState()) {
+                    case 'menu':
+                        this.drawMenu();
+                        break;
+                    case 'game_over':
+                        this.drawGameOverMenu();
+                        break;
+                }
+            }
+            
+            drawMenu() {
+                // Semi-transparent overlay
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Title
+                this.ctx.fillStyle = '#667eea';
+                this.ctx.font = 'bold 48px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('STACKS', this.canvas.width / 2, 150);
+                
+                // Subtitle
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = '20px Arial';
+                this.ctx.fillText('Debug Version', this.canvas.width / 2, 190);
+                
+                // Play button
+                this.drawButton(
+                    this.canvas.width / 2 - 100, 250, 200, 60,
+                    'PLAY', '#ff6b6b', '#ffffff'
+                );
+                
+                // Instructions
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = '16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Press SPACE or Click to start', this.canvas.width / 2, this.canvas.height - 50);
+                this.ctx.fillText('Check debug panel below for details', this.canvas.width / 2, this.canvas.height - 25);
+            }
+            
+            drawGameOverMenu() {
+                const stateData = this.stateManager.getCurrentStateData();
+                
+                // Semi-transparent overlay
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Title
+                this.ctx.fillStyle = '#ff6b6b';
+                this.ctx.font = 'bold 36px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('GAME OVER', this.canvas.width / 2, 150);
+                
+                // Show score
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = 'bold 24px Arial';
+                this.ctx.fillText(`Final Score: ${stateData.finalScore}`, this.canvas.width / 2, 250);
+                
+                if (stateData.isNewRecord) {
+                    this.ctx.fillStyle = '#00ff00';
+                    this.ctx.fillText('NEW HIGH SCORE!', this.canvas.width / 2, 300);
+                }
+                
+                // Play button
+                this.drawButton(
+                    this.canvas.width / 2 - 100, 350, 200, 60,
+                    'PLAY AGAIN', '#ff6b6b', '#ffffff'
+                );
+            }
+            
+            drawButton(x, y, width, height, text, bgColor, textColor) {
+                // Button background
+                this.ctx.fillStyle = bgColor;
+                this.ctx.fillRect(x, y, width, height);
+                
+                // Button border
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(x, y, width, height);
+                
+                // Button text
+                this.ctx.fillStyle = textColor;
+                this.ctx.font = 'bold 18px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(text, x + width / 2, y + height / 2);
+            }
+            
+            gameLoop(currentTime = 0) {
+                const deltaTime = (currentTime - this.lastTime) / 1000;
+                this.lastTime = currentTime;
+                
+                // Update
+                this.update(deltaTime);
+                
+                // Render
+                this.render();
+                
+                // Continue loop
+                requestAnimationFrame((time) => this.gameLoop(time));
+            }
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🌐 DOM loaded, starting initialization...');
+            
+            // Run tests
+            const canvasOk = testCanvas();
+            const audioOk = testAudio();
+            testEvents();
+            
+            if (canvasOk) {
+                try {
+                    log('🎮 Creating game instance...');
+                    const game = new StacksGame();
+                    log('✅ Game instance created successfully!');
+                    log('🎮 Game is ready! Press SPACE or click PLAY to start');
+                } catch (error) {
+                    log(`❌ Game creation failed: ${error.message}`, 'error');
+                    log(`Stack trace: ${error.stack}`, 'error');
+                }
+            } else {
+                log('❌ Cannot create game - canvas tests failed', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
