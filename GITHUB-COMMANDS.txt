@@ -1,0 +1,16 @@
+# RUN THESE COMMANDS IN YOUR TERMINAL:
+# (Replace YOUR_USERNAME with your actual GitHub username)
+
+git remote add origin https://github.com/YOUR_USERNAME/stacks-game.git
+git branch -M main
+git push -u origin main
+
+# AFTER PUSHING, GO TO VERCEL:
+# 1. Go to vercel.com
+# 2. Click "New Project"
+# 3. Import your "stacks-game" repository from GitHub
+# 4. Vercel will auto-detect it's a static site
+# 5. Click "Deploy"
+
+# YOUR GAME WILL BE LIVE AT:
+# https://your-project-name.vercel.app
