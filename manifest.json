@@ -1,32 +1,27 @@
 {
-  "name": "STACKS - Viral Stacking Game",
+  "name": "STACKS - Enhanced Stacking Game",
   "short_name": "STACKS",
-  "description": "The most addictive stacking game with daily streaks and viral challenges",
-  "start_url": "./stacks.html",
+  "description": "Enhanced stacking game with power-ups, combos, and viral challenges",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#667eea",
+  "background_color": "#0a0a0a",
   "theme_color": "#667eea",
-  "orientation": "portrait",
+  "orientation": "any",
+  "scope": "./",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "categories": ["games", "entertainment"],
-  "lang": "en",
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ]
+  "lang": "en"
 }

@@ -1,16 +1,45 @@
-# RUN THESE COMMANDS IN YOUR TERMINAL:
-# (Replace YOUR_USERNAME with your actual GitHub username)
+# 🚀 GITHUB + VERCEL DEPLOYMENT COMMANDS
+# Cross-platform ready for Desktop, iPhone, and Android!
 
-git remote add origin https://github.com/YOUR_USERNAME/stacks-game.git
+# STEP 1: CREATE GITHUB REPOSITORY
+# 1. Go to github.com
+# 2. Click "New repository" 
+# 3. Name: "neon-bricks"
+# 4. Make it PUBLIC (for Vercel free tier)
+# 5. Don't add README, .gitignore, or license
+# 6. Click "Create repository"
+
+# STEP 2: PUSH TO GITHUB
+# Your GitHub username: stampedit
+# Repository name: neon-bricks
+
+git remote add origin https://github.com/stampedit/neon-bricks.git
 git branch -M main
 git push -u origin main
 
-# AFTER PUSHING, GO TO VERCEL:
+# STEP 3: DEPLOY TO VERCEL
 # 1. Go to vercel.com
-# 2. Click "New Project"
-# 3. Import your "stacks-game" repository from GitHub
-# 4. Vercel will auto-detect it's a static site
-# 5. Click "Deploy"
+# 2. Sign in with your GitHub account
+# 3. Click "New Project"
+# 4. Import your "neon-bricks" repository
+# 5. Vercel will auto-detect it's a static site
+# 6. Click "Deploy"
 
-# YOUR GAME WILL BE LIVE AT:
-# https://your-project-name.vercel.app
+# 🎮 YOUR GAME WILL BE LIVE AT:
+# https://neon-bricks.vercel.app
+
+# 📱 MOBILE TESTING:
+# iPhone: Open Safari, go to https://neon-bricks.vercel.app
+# Android: Open Chrome, go to https://neon-bricks.vercel.app
+# Both support touch controls and responsive design!
+
+# 🎯 CROSS-PLATFORM FEATURES:
+# ✅ Desktop: Keyboard (SPACE), Mouse Click, P for power-ups
+# ✅ Mobile: Touch to drop, on-screen drop button
+# ✅ Responsive: Works on all screen sizes
+# ✅ PWA: Can be installed on phones as an app
+# ✅ Touch-optimized: Large tap targets, mobile controls
+
+# 🌐 YOUR GAME URLS:
+# GitHub: https://github.com/stampedit/neon-bricks
+# Live Game: https://neon-bricks.vercel.app
