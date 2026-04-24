@@ -3,72 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>STACKS - Version 2 (Premium Enhanced)</title>
+    <title>STACKS - Button Test</title>
     
     <style>
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0a0a0a;
-            color: #ffffff;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            touch-action: auto;
+            pointer-events: auto;
         }
-
+        
         .game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-        }
-
-        .game-canvas {
-            border: 3px solid rgba(0, 255, 255, 0.5);
-            border-radius: 12px;
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            max-width: 100%;
-            max-height: 100vh;
-            image-rendering: pixelated;
-            cursor: pointer;
-            transition: box-shadow 0.3s ease;
             pointer-events: none;
         }
-
-        .game-canvas:hover {
-            box-shadow: 0 0 60px rgba(0, 255, 255, 0.5);
+        
+        .game-canvas {
+            border: 3px solid #00ffff;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            pointer-events: none;
+            z-index: 1;
         }
-
+        
         .version-indicator {
             position: fixed;
             top: 10px;
             left: 10px;
-            background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+            background: #ff006e;
             padding: 8px 15px;
             border-radius: 20px;
             font-size: 14px;
             font-weight: bold;
             color: white;
             z-index: 1000;
-            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.4);
         }
-
+        
         .mobile-controls {
             position: fixed;
             bottom: 20px;
@@ -77,48 +55,31 @@
             display: none;
             z-index: 1000;
         }
-
+        
         .drop-button {
-            background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
-            color: white;
+            background: #00ffff;
+            color: #0a0a0a;
             border: none;
             padding: 15px 30px;
             border-radius: 50px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             pointer-events: auto;
             z-index: 9999;
         }
-
-        .drop-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 255, 255, 0.6);
-        }
-
-        .drop-icon {
-            font-size: 20px;
-        }
-
+        
         .powerup-controls {
             position: fixed;
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            display: none;
             z-index: 1000;
         }
-
+        
         .powerup-button {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            background: #ff6b6b;
             color: white;
             border: none;
             padding: 12px 20px;
@@ -126,51 +87,10 @@
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
             pointer-events: auto;
             z-index: 9999;
         }
-
-        .powerup-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
-        }
-
-        .powerup-icon {
-            font-size: 16px;
-        }
-
-        .powerup-inventory {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 300px;
-        }
-
-        .powerup-slot {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: white;
-            text-align: center;
-            min-width: 40px;
-            position: relative;
-            pointer-events: auto;
-            z-index: 9999;
-        }
-
-        .powerup-slot.filled {
-            background: rgba(255, 107, 107, 0.3);
-            border-color: #ff6b6b;
-        }
-
+        
         .mobile-nav-controls {
             position: fixed;
             top: 20px;
@@ -180,9 +100,9 @@
             gap: 10px;
             z-index: 1000;
         }
-
+        
         .nav-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border: none;
             padding: 10px 15px;
@@ -190,74 +110,14 @@
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 80px;
-            justify-content: center;
             pointer-events: auto;
             z-index: 9999;
         }
-
-        .nav-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .nav-icon {
-            font-size: 14px;
-        }
-
-        .nav-text {
-            font-size: 11px;
-        }
-
-        .restart-button {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-        }
-
+        
         .home-button {
-            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+            background: #4ecdc4;
         }
-
-        .instructions {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 14px;
-            color: #00ffff;
-            text-align: center;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
-        }
-
-        .power-up-hint {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 0, 110, 0.2);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #ff006e;
-            text-align: center;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 0, 110, 0.3);
-            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.2);
-        }
-
+        
         @media (max-width: 768px) {
             .mobile-controls {
                 display: block;
@@ -266,223 +126,33 @@
             .mobile-nav-controls {
                 display: flex;
             }
-            
-            .instructions {
-                font-size: 12px;
-                padding: 8px 16px;
-                top: 10px;
-            }
-            
-            .power-up-hint {
-                font-size: 11px;
-                bottom: 70px;
-                padding: 6px 12px;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="version-indicator">VERSION 2 - Premium Enhanced</div>
+    <div class="version-indicator">BUTTON TEST VERSION</div>
     
     <div class="game-container">
         <canvas id="gameCanvas" class="game-canvas" width="500" height="700"></canvas>
         
-        <div class="instructions">
-            SPACE: Drop | P: Power-up | ESC: Pause | Instant Restart
-        </div>
-        
-        <div class="power-up-hint">
-            Premium Edition • High Tension • Instant Action
-        </div>
-        
         <div class="mobile-controls">
-            <button id="dropButton" class="drop-button">
-                <span class="drop-icon">▼</span>
-                <span class="drop-text">DROP</span>
-            </button>
+            <button id="dropButton" class="drop-button">DROP</button>
             
-            <!-- Power-up controls for mobile -->
-            <div id="powerUpControls" class="powerup-controls" style="display: none;">
-                <button id="powerUpButton" class="powerup-button">
-                    <span class="powerup-icon">⚡</span>
-                    <span class="powerup-text">USE POWER-UP</span>
-                </button>
-                
-                <div id="powerUpInventory" class="powerup-inventory">
-                    <!-- Power-ups will be shown here -->
-                </div>
+            <div id="powerUpControls" class="powerup-controls">
+                <button id="powerUpButton" class="powerup-button">POWER-UP</button>
             </div>
             
-            <!-- Mobile navigation controls -->
             <div id="mobileNavControls" class="mobile-nav-controls">
-                <button id="homeButton" class="nav-button home-button">
-                    <span class="nav-icon">🏠</span>
-                    <span class="nav-text">HOME</span>
-                </button>
+                <button id="homeButton" class="nav-button home-button">HOME</button>
             </div>
         </div>
     </div>
 
-    <!-- Include modular JavaScript files -->
-    <script src="stateManager.js"></script>
-    <script src="particleSystem.js"></script>
-    <script src="soundSystem.js"></script>
-    <script src="old-stacks.js"></script>
-    <script src="reward-system.js"></script>
-    <script src="pointer-event-system.js"></script>
-    <script src="button-debug-fix.js"></script>
+    <!-- ONLY SIMPLE BUTTON FIX -->
+    <script src="simple-button-fix.js"></script>
     
     <script>
-        // Update mobile power-up display
-        function updateMobilePowerUpDisplay() {
-            const powerUpControls = document.getElementById('powerUpControls');
-            const powerUpInventory = document.getElementById('powerUpInventory');
-            
-            if (window.game && window.game.collectedPowerUps) {
-                const powerUps = window.game.collectedPowerUps;
-                
-                if (powerUps.length > 0) {
-                    powerUpControls.style.display = 'flex';
-                    powerUpInventory.innerHTML = '';
-                    
-                    powerUps.forEach((powerUp, index) => {
-                        const slot = document.createElement('div');
-                        slot.className = 'powerup-slot filled';
-                        slot.innerHTML = `
-                            <div style="font-size: 16px;">${powerUp.icon}</div>
-                            <div style="font-size: 10px;">${powerUp.name}</div>
-                        `;
-                        powerUpInventory.appendChild(slot);
-                    });
-                } else {
-                    powerUpControls.style.display = 'none';
-                }
-            }
-        }
-        
-        // Listen for power-up changes
-        setInterval(updateMobilePowerUpDisplay, 1000);
-        
-        // Hide instructions after 8 seconds
-        setTimeout(() => {
-            const instructions = document.querySelector('.instructions');
-            const hint = document.querySelector('.power-up-hint');
-            
-            if (instructions) {
-                instructions.style.transition = 'opacity 1s ease-out';
-                instructions.style.opacity = '0';
-                setTimeout(() => {
-                    instructions.style.display = 'none';
-                }, 1000);
-            }
-            
-            if (hint) {
-                setTimeout(() => {
-                    hint.style.transition = 'opacity 1s ease-out';
-                    hint.style.opacity = '0';
-                    setTimeout(() => {
-                        hint.style.display = 'none';
-                    }, 1000);
-                }, 2000);
-            }
-        }, 8000);
-        
-        // Error handling
-        window.addEventListener('error', (event) => {
-            console.error('Game error:', event.error);
-        });
-        
-        // Performance monitoring
-        let fps = 60;
-        let lastTime = performance.now();
-        let frames = 0;
-        
-        function updateFPS() {
-            frames++;
-            const currentTime = performance.now();
-            
-            if (currentTime >= lastTime + 1000) {
-                fps = Math.round((frames * 1000) / (currentTime - lastTime));
-                frames = 0;
-                lastTime = currentTime;
-            }
-            
-            requestAnimationFrame(updateFPS);
-        }
-        
-        updateFPS();
-        
-        // Handle visibility change for performance
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                console.log('Page hidden - pausing background processes');
-            } else {
-                console.log('Page visible - resuming');
-            }
-        });
-        
-        // Console enhancements for power-up feedback
-        const originalLog = console.log;
-        console.log = function(...args) {
-            originalLog.apply(console, args);
-            
-            // Show power-up collection notifications
-            const message = args.join(' ');
-            if (message.includes('🎁 Collected')) {
-                showPowerUpNotification(message.replace('🎁 Collected', '').replace('! Press P or 1-7 to use.', '') + ' collected!');
-            }
-            if (message.includes('⚡ Activated')) {
-                showPowerUpNotification(message.replace('⚡ Activated', '').replace('!', '') + ' activated!');
-            }
-        };
-        
-        // Show power-up notifications
-        function showPowerUpNotification(message) {
-            const notification = document.createElement('div');
-            notification.className = 'powerup-notification';
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 60px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
-                padding: 12px 24px;
-                border-radius: 25px;
-                font-size: 14px;
-                font-weight: bold;
-                color: white;
-                text-align: center;
-                z-index: 2000;
-                animation: slideIn 0.3s ease-out;
-                box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transition = 'opacity 0.3s ease-out';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 2000);
-        }
-        
-        // Add slide-in animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(-50%) translateY(20px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(-50%) translateY(0);
-                    opacity: 1;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        console.log('🔧 HTML: Simple button test version loaded');
     </script>
 </body>
 </html>
