@@ -48,6 +48,7 @@
             image-rendering: pixelated;
             cursor: pointer;
             transition: box-shadow 0.3s ease;
+            pointer-events: none;
         }
 
         .game-canvas:hover {
@@ -91,6 +92,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            pointer-events: auto;
+            z-index: 9999;
         }
 
         .drop-button:hover {
@@ -128,6 +131,8 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            pointer-events: auto;
+            z-index: 9999;
         }
 
         .powerup-button:hover {
@@ -157,6 +162,8 @@
             text-align: center;
             min-width: 40px;
             position: relative;
+            pointer-events: auto;
+            z-index: 9999;
         }
 
         .powerup-slot.filled {
@@ -190,6 +197,8 @@
             gap: 6px;
             min-width: 80px;
             justify-content: center;
+            pointer-events: auto;
+            z-index: 9999;
         }
 
         .nav-button:hover {
@@ -283,7 +292,7 @@
         </div>
         
         <div class="power-up-hint">
-            ⚡ Premium Edition • High Tension • Instant Action
+            Premium Edition • High Tension • Instant Action
         </div>
         
         <div class="mobile-controls">
@@ -306,11 +315,6 @@
             
             <!-- Mobile navigation controls -->
             <div id="mobileNavControls" class="mobile-nav-controls">
-                <button id="restartButton" class="nav-button restart-button">
-                    <span class="nav-icon">🔄</span>
-                    <span class="nav-text">RESTART</span>
-                </button>
-                
                 <button id="homeButton" class="nav-button home-button">
                     <span class="nav-icon">🏠</span>
                     <span class="nav-text">HOME</span>
@@ -325,38 +329,9 @@
     <script src="soundSystem.js"></script>
     <script src="old-stacks.js"></script>
     <script src="reward-system.js"></script>
-    <script src="button-fix.js"></script>
+    <script src="pointer-event-system.js"></script>
     
     <script>
-        // Mobile drop button
-        document.getElementById('dropButton')?.addEventListener('click', () => {
-            const event = new CustomEvent('dropBlock');
-            document.dispatchEvent(event);
-        });
-        
-        // Mobile power-up button
-        document.getElementById('powerUpButton')?.addEventListener('click', () => {
-            if (window.game && window.game.activateNextPowerUp) {
-                window.game.activateNextPowerUp();
-            }
-        });
-        
-        // Mobile restart button
-        document.getElementById('restartButton')?.addEventListener('click', () => {
-            if (window.game && window.game.stateManager) {
-                window.game.stateManager.setState('playing');
-                console.log('🔄 Game restarted (mobile button)');
-            }
-        });
-        
-        // Mobile home button
-        document.getElementById('homeButton')?.addEventListener('click', () => {
-            if (window.game && window.game.stateManager) {
-                window.game.stateManager.setState('menu');
-                console.log('🏠 Returned to main menu (mobile button)');
-            }
-        });
-        
         // Update mobile power-up display
         function updateMobilePowerUpDisplay() {
             const powerUpControls = document.getElementById('powerUpControls');
@@ -373,16 +348,9 @@
                         const slot = document.createElement('div');
                         slot.className = 'powerup-slot filled';
                         slot.innerHTML = `
-                            <div class="powerup-slot-number">${index + 1}</div>
-                            ${powerUp.icon}
+                            <div style="font-size: 16px;">${powerUp.icon}</div>
+                            <div style="font-size: 10px;">${powerUp.name}</div>
                         `;
-                        
-                        slot.addEventListener('click', () => {
-                            if (window.game && window.game.activatePowerUpByIndex) {
-                                window.game.activatePowerUpByIndex(index);
-                            }
-                        });
-                        
                         powerUpInventory.appendChild(slot);
                     });
                 } else {
@@ -391,70 +359,129 @@
             }
         }
         
-        // Update power-up display every second
+        // Listen for power-up changes
         setInterval(updateMobilePowerUpDisplay, 1000);
         
-        // Make game globally accessible
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                if (typeof StacksGameEnhancedV2 !== 'undefined') {
-                    const originalGameLoop = StacksGameEnhancedV2.prototype.gameLoop;
-                    StacksGameEnhancedV2.prototype.gameLoop = function(currentTime = 0) {
-                        window.game = this;
-                        return originalGameLoop.call(this, currentTime);
-                    };
-                }
-            }, 1000);
-        });
-        
-        // Prevent zoom on double tap for mobile
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', (event) => {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-        
-        // Hide instructions after 6 seconds
+        // Hide instructions after 8 seconds
         setTimeout(() => {
             const instructions = document.querySelector('.instructions');
             const hint = document.querySelector('.power-up-hint');
             
             if (instructions) {
-                instructions.style.transition = 'opacity 0.5s ease-out';
+                instructions.style.transition = 'opacity 1s ease-out';
                 instructions.style.opacity = '0';
                 setTimeout(() => {
                     instructions.style.display = 'none';
-                }, 500);
+                }, 1000);
             }
             
             if (hint) {
                 setTimeout(() => {
-                    hint.style.transition = 'opacity 0.5s ease-out';
+                    hint.style.transition = 'opacity 1s ease-out';
                     hint.style.opacity = '0';
                     setTimeout(() => {
                         hint.style.display = 'none';
-                    }, 500);
-                }, 1000);
+                    }, 1000);
+                }, 2000);
             }
-        }, 6000);
+        }, 8000);
         
         // Error handling
         window.addEventListener('error', (event) => {
             console.error('Game error:', event.error);
         });
         
-        // Console enhancements
+        // Performance monitoring
+        let fps = 60;
+        let lastTime = performance.now();
+        let frames = 0;
+        
+        function updateFPS() {
+            frames++;
+            const currentTime = performance.now();
+            
+            if (currentTime >= lastTime + 1000) {
+                fps = Math.round((frames * 1000) / (currentTime - lastTime));
+                frames = 0;
+                lastTime = currentTime;
+            }
+            
+            requestAnimationFrame(updateFPS);
+        }
+        
+        updateFPS();
+        
+        // Handle visibility change for performance
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('Page hidden - pausing background processes');
+            } else {
+                console.log('Page visible - resuming');
+            }
+        });
+        
+        // Console enhancements for power-up feedback
         const originalLog = console.log;
         console.log = function(...args) {
             originalLog.apply(console, args);
+            
+            // Show power-up collection notifications
             const message = args.join(' ');
             if (message.includes('🎁 Collected')) {
-                updateMobilePowerUpDisplay();
+                showPowerUpNotification(message.replace('🎁 Collected', '').replace('! Press P or 1-7 to use.', '') + ' collected!');
+            }
+            if (message.includes('⚡ Activated')) {
+                showPowerUpNotification(message.replace('⚡ Activated', '').replace('!', '') + ' activated!');
             }
         };
+        
+        // Show power-up notifications
+        function showPowerUpNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'powerup-notification';
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 60px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-size: 14px;
+                font-weight: bold;
+                color: white;
+                text-align: center;
+                z-index: 2000;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s ease-out';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+        
+        // Add slide-in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(-50%) translateY(20px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
