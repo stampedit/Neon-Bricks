@@ -167,6 +167,8 @@ class RewardSystem {
     
     // Shop System
     initializeShopButton() {
+        console.log('🛍️ Initializing shop button...');
+        
         // Find existing button container or create one
         let buttonContainer = document.querySelector('.mobile-nav-controls');
         if (!buttonContainer) {
@@ -183,31 +185,91 @@ class RewardSystem {
             document.body.appendChild(buttonContainer);
         }
         
-        // Create shop button matching existing style
-        const shopButton = document.createElement('button');
-        shopButton.id = 'shopButton';
-        shopButton.className = 'nav-button';
-        shopButton.style.cssText = `
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-            color: #333;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 80px;
-            justify-content: center;
-        `;
-        shopButton.innerHTML = `<span class="nav-icon">🛍️</span><span class="nav-text">SHOP</span>`;
-        shopButton.addEventListener('click', () => this.openShop());
+        // Check if shop button already exists
+        let shopButton = document.getElementById('shopButton');
+        if (!shopButton) {
+            // Create shop button matching existing style
+            shopButton = document.createElement('button');
+            shopButton.id = 'shopButton';
+            shopButton.className = 'nav-button';
+            shopButton.style.cssText = `
+                background: linear-gradient(135deg, #ffd700, #ffed4e);
+                color: #333;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                min-width: 80px;
+                justify-content: center;
+            `;
+            shopButton.innerHTML = `<span class="nav-icon">🛍️</span><span class="nav-text">SHOP</span>`;
+            
+            // Add event listener with proper error handling
+            shopButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🛍️ Shop button clicked');
+                try {
+                    this.openShop();
+                } catch (error) {
+                    console.error('❌ Error opening shop:', error);
+                }
+            });
+            
+            // Add touch event for mobile
+            shopButton.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('📱 Shop button touched');
+                try {
+                    this.openShop();
+                } catch (error) {
+                    console.error('❌ Error opening shop:', error);
+                }
+            }, { passive: false });
+            
+            buttonContainer.appendChild(shopButton);
+            console.log('✅ Shop button created and added');
+        } else {
+            console.log('ℹ️ Shop button already exists, updating event listeners');
+            
+            // Remove existing listeners by cloning
+            const newButton = shopButton.cloneNode(true);
+            shopButton.parentNode.replaceChild(newButton, shopButton);
+            shopButton = newButton;
+            
+            // Add fresh event listeners
+            shopButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🛍️ Shop button clicked (updated)');
+                try {
+                    this.openShop();
+                } catch (error) {
+                    console.error('❌ Error opening shop:', error);
+                }
+            });
+            
+            shopButton.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('📱 Shop button touched (updated)');
+                try {
+                    this.openShop();
+                } catch (error) {
+                    console.error('❌ Error opening shop:', error);
+                }
+            }, { passive: false });
+        }
         
-        buttonContainer.appendChild(shopButton);
+        return shopButton;
     }
     
     openShop() {
@@ -560,12 +622,12 @@ class RewardSystem {
             const result = originalDropBlock();
             
             // Award coins for successful stack
-            if (result && result.success) {
-                const coins = result.perfect ? 3 : 1;
+            if (this.game.checkBlockPlacement()) {
+                const coins = this.isPerfectStack() ? 3 : 1;
                 this.earnCoins(coins, 'stack');
                 
                 // Bonus for perfect stacks
-                if (result.perfect) {
+                if (this.isPerfectStack()) {
                     this.earnCoins(2, 'perfect');
                 }
             }
@@ -587,6 +649,19 @@ class RewardSystem {
         
         // Apply upgrade effects
         this.applyUpgradeEffects();
+    }
+    
+    // Check if stack was perfect
+    isPerfectStack() {
+        if (!this.game.lastBlock || !this.game.currentBlock) return false;
+        
+        const blockLeft = this.game.currentBlock.x;
+        const blockRight = this.game.currentBlock.x + this.game.currentBlock.width;
+        const lastBlockLeft = this.game.lastBlock.x;
+        const lastBlockRight = this.game.lastBlock.x + this.game.lastBlock.width;
+        
+        const tolerance = 2; // Very tight tolerance for perfect
+        return Math.abs(blockLeft - lastBlockLeft) < tolerance && Math.abs(blockRight - lastBlockRight) < tolerance;
     }
     
     // Persistence
@@ -630,12 +705,48 @@ class RewardSystem {
 
 // Initialize reward system when game loads
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎮 DOM loaded, waiting for game initialization...');
+    
     // Wait for game to initialize
+    const checkGame = setInterval(() => {
+        if (window.game && typeof window.game === 'object') {
+            console.log('✅ Game found, initializing reward system...');
+            clearInterval(checkGame);
+            
+            window.rewardSystem = new RewardSystem(window.game);
+            window.rewardSystem.integrateWithGame();
+            window.rewardSystem.addAnimations();
+            
+            console.log('🪙 Reward system fully integrated');
+        } else if (typeof StacksGameEnhancedV2 !== 'undefined') {
+            console.log('🎮 Game class found, creating instance...');
+            clearInterval(checkGame);
+            
+            // Create game instance if it doesn't exist
+            if (!window.game) {
+                window.game = new StacksGameEnhancedV2();
+            }
+            
+            setTimeout(() => {
+                window.rewardSystem = new RewardSystem(window.game);
+                window.rewardSystem.integrateWithGame();
+                window.rewardSystem.addAnimations();
+                console.log('🪙 Reward system fully integrated');
+            }, 500);
+        }
+    }, 100);
+    
+    // Timeout after 10 seconds
     setTimeout(() => {
+        clearInterval(checkGame);
+        console.log('⚠️ Game initialization timeout, trying fallback...');
+        
+        // Fallback: try to initialize with any game object
         if (window.game) {
             window.rewardSystem = new RewardSystem(window.game);
             window.rewardSystem.integrateWithGame();
             window.rewardSystem.addAnimations();
+            console.log('🪙 Reward system initialized with fallback');
         }
-    }, 1000);
+    }, 10000);
 });
